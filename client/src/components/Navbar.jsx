@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import Link from "next/link";
 import { ModeToggle } from "./ModeToggle";
-// import Logo from "../../public/Logo";
+import { BrainCircuit } from "lucide-react";
 
 export default function Navbar() {
   return (
@@ -25,7 +25,7 @@ export default function Navbar() {
           href="/"
           className="text-xl flex flex-row items-center gap-3 font-semibold"
         >
-          {/* <Logo /> */}
+          <BrainCircuit />
           MNISTic
         </Link>
 
