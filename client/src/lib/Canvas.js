@@ -1,4 +1,5 @@
 "use client";
+import axios from "axios";
 // components/Canvas.js
 import { useEffect, useRef, useState } from "react";
 
@@ -93,7 +94,10 @@ const Canvas = () => {
   async function predict() {
     try {
       if (savedImages.length > 0) {
-        const res = await axios.post("URL", savedImages[0]);
+        const res = await axios.post(
+          "http://127.0.0.1:8000/predict",
+          { input_data: savedImages[0] }
+        );
         console.log(res);
       } else {
         console.log("No images to predict");
@@ -126,6 +130,12 @@ const Canvas = () => {
         className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2"
       >
         Save Drawing
+      </button>
+      <button
+        onClick={predict}
+        className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2"
+      >
+        Predict
       </button>
       <div style={{ marginTop: "20px", color: "white" }}>
         <h2>Saved Images (MNIST format):</h2>
