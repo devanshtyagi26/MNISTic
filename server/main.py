@@ -18,10 +18,10 @@ output_details = interpreter.get_output_details()
 app = FastAPI()
 
 # CORS setup
-# origins = os.getenv("FRONTEND_ORIGINS", "*").split(",")
+origins = os.getenv("FRONTEND_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow any origin
+    allow_origins=origins,  # Allow any origin
     allow_credentials=True,
     allow_methods=["GET", "POST"],  # Allow GET and POST methods
     allow_headers=["Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "X-Requested-With"],
