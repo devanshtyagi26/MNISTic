@@ -9,7 +9,7 @@ const Canvas = () => {
   const [prediction, setPrediction] = useState("");
   const [confidence, setConfidence] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const URI = process.env.NEXT_PUBLIC_API_URL;
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
@@ -108,7 +108,7 @@ const Canvas = () => {
       setLoading(true);
       try {
         if (savedImages.length > 0) {
-          const res = await axios.post("http://127.0.0.1:8000/predict", {
+          const res = await axios.post(`${URI}/predict`, {
             input_data: savedImages[0],
           });
           setPrediction(res.data.prediction);
