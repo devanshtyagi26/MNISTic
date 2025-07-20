@@ -1,47 +1,61 @@
 "use client";
 import axios from "axios";
-// components/Canvas.js
 import { useEffect, useRef, useState } from "react";
 
 const Canvas = () => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [savedImages, setSavedImages] = useState([]);
+  const [prediction, setPrediction] = useState("");
+  const [confidence, setConfidence] = useState("");
+  const [loading, setLoading] = useState(false); // State to handle loading
 
-  // Set up the canvas drawing context
+  // Set up the canvas drawing context and make it responsive
   useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
+
+    // Initial fill (black background)
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
 
+  // Handle starting drawing
   const startDrawing = (e) => {
     setIsDrawing(true);
 
-    // Reset path when drawing starts
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
 
-    // Start a new path (new line)
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+
     context.beginPath();
     context.moveTo(x, y);
   };
 
+  // Handle stopping drawing
   const stopDrawing = () => {
     setIsDrawing(false);
   };
 
+  // Handle drawing while moving mouse
   const draw = (e) => {
     if (!isDrawing) return;
+
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
     context.strokeStyle = "white";
     context.lineWidth = 25;
@@ -50,96 +64,132 @@ const Canvas = () => {
     context.stroke();
   };
 
+  // Handle mouse move event for drawing
   const handleMouseMove = (e) => {
     draw(e);
   };
 
-  const saveImage = () => {
+  // Save the image and convert it to MNIST format
+  const saveImage = async () => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
 
-    // Get the current image data (canvas)
     const imageDataUrl = canvas.toDataURL("image/png");
-
-    // Create a temporary image element to resize the image
     const img = new Image();
     img.src = imageDataUrl;
 
-    img.onload = () => {
-      // Create a new canvas to resize the image to 28x28 pixels (MNIST format)
-      const smallCanvas = document.createElement("canvas");
-      smallCanvas.width = 28;
-      smallCanvas.height = 28;
-      const smallContext = smallCanvas.getContext("2d");
+    return new Promise((resolve) => {
+      img.onload = () => {
+        const smallCanvas = document.createElement("canvas");
+        smallCanvas.width = 28;
+        smallCanvas.height = 28;
+        const smallContext = smallCanvas.getContext("2d");
 
-      // Draw the original image on the smaller canvas
-      smallContext.drawImage(img, 0, 0, 28, 28);
+        smallContext.drawImage(img, 0, 0, 28, 28);
 
-      // Get the pixel data (grayscale) from the small canvas
-      const pixelData = smallContext.getImageData(0, 0, 28, 28).data;
-      const mnistArray = [];
+        const pixelData = smallContext.getImageData(0, 0, 28, 28).data;
+        const mnistArray = [];
 
-      // Convert the image data to grayscale values (0-255)
-      for (let i = 0; i < pixelData.length; i += 4) {
-        // Average the R, G, B channels to get the grayscale value
-        const grayscale = pixelData[i]; // R == G == B for grayscale
-        mnistArray.push(grayscale / 255); // Normalize to 0-1
-      }
+        for (let i = 0; i < pixelData.length; i += 4) {
+          const grayscale = pixelData[i]; // R == G == B for grayscale
+          mnistArray.push(grayscale / 255); // Normalize to 0-1
+        }
 
-      // Update the state using the functional form to append the new image
-      setSavedImages((prevImages) => [...prevImages, mnistArray]);
-    };
+        setSavedImages([mnistArray]); // Save the new image
+        resolve();
+      };
+    });
   };
 
-  async function predict() {
-    try {
-      if (savedImages.length > 0) {
-        const res = await axios.post(
-          "http://127.0.0.1:8000/predict",
-          { input_data: savedImages[0] }
-        );
-        console.log(res);
-      } else {
-        console.log("No images to predict");
+  // We will use this effect to trigger the request only after savedImages are updated
+  useEffect(() => {
+    const makePrediction = async () => {
+      try {
+        if (savedImages.length > 0) {
+          const res = await axios.post("http://127.0.0.1:8000/predict", {
+            input_data: savedImages[0],
+          });
+          setPrediction(res.data.prediction);
+          setConfidence(res.data.confidence);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
+    };
+
+    // Only make prediction if images have been saved
+    if (savedImages.length > 0) {
+      makePrediction();
     }
-  }
+  }, [savedImages]); // This hook will run when savedImages are updated
+
+  const predict = async () => {
+    await saveImage(); // Wait for the image to be saved first
+  };
+
+  // Clear the canvas
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "black"; // Clear canvas with black background
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    setPrediction("");
+    setConfidence("");
+    setSavedImages([]);
+  };
+
   return (
     <div className="flex flex-col relative">
       <h1 className="text-center text-white pb-2">
         Draw a single Digit on Canvas
       </h1>
-      <canvas
-        ref={canvasRef}
-        width={500}
-        height={500}
-        onMouseDown={startDrawing}
-        onMouseUp={stopDrawing}
-        onMouseOut={stopDrawing}
-        onMouseMove={handleMouseMove}
+
+      {/* Responsive Canvas Container */}
+      <div
         style={{
-          border: "2px solid white",
-          cursor: "crosshair",
+          width: "100%", // Make the container 100% wide
+          maxWidth: "350px", // Limit max width to 350px (updated)
+          height: "auto",
+          position: "relative",
         }}
-      />
+      >
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={500}
+          onMouseDown={startDrawing}
+          onMouseUp={stopDrawing}
+          onMouseOut={stopDrawing}
+          onMouseMove={handleMouseMove}
+          style={{
+            border: "2px solid white",
+            cursor: "crosshair",
+            width: "100%", // Make canvas width 100% of its container
+            height: "auto", // Maintain aspect ratio
+          }}
+        />
+      </div>
+
       <br />
-      <button
-        onClick={saveImage}
-        className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2"
-      >
-        Save Drawing
-      </button>
-      <button
-        onClick={predict}
-        className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2"
-      >
-        Predict
-      </button>
+      <div className="flex justify-center items-center gap-1 w-[100%]">
+        <button
+          onClick={predict}
+          className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2 w-[100%]"
+        >
+          {loading ? "Predicting..." : "Predict"} {/* Show loading text */}
+        </button>
+
+        <button
+          onClick={clearCanvas}
+          className="block m-1 p-[10px 20px] text-2xl cursor-pointer bg-red-500 text-white border-2 mt-2 w-[100%]"
+        >
+          Clear Canvas
+        </button>
+      </div>
+
       <div style={{ marginTop: "20px", color: "white" }}>
-        <h2>Saved Images (MNIST format):</h2>
-        <pre>{JSON.stringify(savedImages, null, 2)}</pre>
+        <h2>Prediction: {prediction}</h2>
+        <h3>Confidence: {confidence * 100}%</h3>
       </div>
     </div>
   );
