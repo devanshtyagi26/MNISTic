@@ -12,11 +12,12 @@ export default function AboutPage() {
       {/* Hero Section */}
       <section className="text-center space-y-4">
         <h1 className="text-4xl font-extrabold tracking-tight">
-          Welcome to Fursure
+          Welcome to MNISTic
         </h1>
         <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-          Upload an image and let our smart classifier tell you whether it's a
-          cat or a dog — powered by machine learning, trained with love and fur.
+          Draw a digit, and our deep learning model will tell you what number it
+          is — trained on thousands of handwritten digits using the MNIST
+          dataset.
         </p>
         <Button
           variant="outline"
@@ -24,7 +25,7 @@ export default function AboutPage() {
           className="mt-4"
           onClick={() => router.push("/")}
         >
-          Upload an Image
+          Try the Digit Classifier
         </Button>
       </section>
 
@@ -34,15 +35,14 @@ export default function AboutPage() {
       <section className="space-y-6">
         <h2 className="text-2xl font-semibold">What We Do</h2>
         <p className="text-muted-foreground leading-relaxed">
-          Snap it. Upload it. Let the model decide. <br />
-          Trained on thousands of floofy friends, FurSure helps you settle the
-          age-old battle — who's that good boy (or girl)?
+          MNISTic is a simple, interactive digit recognition app powered by a
+          neural network trained on the classic MNIST dataset.
         </p>
         <p className="text-muted-foreground leading-relaxed">
-          FurSure is a lightweight and intelligent web app that distinguishes
-          cats from dogs using deep learning. With just one image, it accurately
-          classifies the animal using a convolutional neural network (CNN)
-          model.
+          It's an educational tool built to demonstrate the power of deep
+          learning in understanding human handwriting. Whether you're a student,
+          a teacher, or just curious — try drawing a digit and watch AI make a
+          prediction in real-time.
         </p>
       </section>
 
@@ -50,14 +50,33 @@ export default function AboutPage() {
 
       {/* How It Works */}
       <section className="space-y-6">
-        <h2 className="text-3xl font-bold">How It Works </h2>
+        <h2 className="text-3xl font-bold">How It Works</h2>
         <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-          <li>You upload an image (JPEG or PNG)</li>
-          <li>The image is preprocessed and sent to the server</li>
-          <li>The FastAPI backend loads the model and runs inference</li>
-          <li>The result — cat or dog — is sent back with confidence</li>
-          <li>You see the prediction + the uploaded image preview</li>
+          <li>You draw a digit (0–9) on the canvas</li>
+          <li>The image is downscaled to 28×28 pixels (just like MNIST)</li>
+          <li>The processed data is sent to a FastAPI backend</li>
+          <li>The backend loads a trained model and performs inference</li>
+          <li>
+            The predicted digit and confidence score are returned instantly
+          </li>
         </ol>
+      </section>
+      <Separator />
+
+      {/* Limitations */}
+      <section className="space-y-6">
+        <h2 className="text-2xl font-semibold">Limitations</h2>
+        <p className="text-muted-foreground leading-relaxed">
+          While MNISTic works well for most clear handwritten digits, it's not
+          perfect. The model may struggle with digits that are messy, ambiguous,
+          or very <strong> different from the MNIST training dataset. </strong>{" "}
+          Think of it more as a fun and educational tool, not a handwriting
+          judge.
+        </p>
+        <p className="text-muted-foreground leading-relaxed">
+          Try different writing styles — it's a great way to learn how machine
+          learning interprets visual input.
+        </p>
       </section>
 
       <Separator />
@@ -70,14 +89,12 @@ export default function AboutPage() {
             src="https://media.licdn.com/dms/image/v2/D5603AQFzurmeOEjQEA/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1733141188155?e=2147483647&v=beta&t=VkayHsyNA50kx-Xpmq8lnYAS_3eoZ4K9WEZLl53PrWs"
             alt="Creator's Avatar"
           />
-          <AvatarFallback>PP</AvatarFallback>
+          <AvatarFallback>DT</AvatarFallback>
         </Avatar>
         <p className="max-w-md text-muted-foreground leading-relaxed">
-          Hi, I'm <strong> Devansh Tyagi </strong>, the brain behind Fursure —
-          the app that finally ends the age-old debate: "Is that a cat or a
-          dog?" Built with machine learning and too many cups of coffee, Fursure
-          is here to judge your furry photos faster than your nani spots a
-          rishta. You're welcome, internet.
+          I'm <strong>Devansh Tyagi</strong>, a developer passionate about
+          making machine learning approachable and interactive. MNISTic was
+          created to bring AI to your fingertips — literally.
         </p>
         <div className="flex space-x-4">
           <Button asChild variant="outline" size="sm">
@@ -106,7 +123,7 @@ export default function AboutPage() {
 
           <Button asChild variant="outline" size="sm">
             <a
-              href="mailto:johndoe@example.com"
+              href="mailto:tyagidevansh3@gmail.com"
               className="flex items-center space-x-2"
             >
               <Mail size={16} />
@@ -122,7 +139,7 @@ export default function AboutPage() {
       <section className="text-center">
         <h2 className="text-2xl font-semibold">Get in Touch</h2>
         <p className="text-muted-foreground mb-4">
-          Have questions or feedback? Reach out at{" "}
+          Have questions, ideas, or feedback? Email me at{" "}
           <a
             href="mailto:tyagidevansh3@gmail.com"
             className="text-blue-600 underline"
