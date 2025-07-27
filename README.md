@@ -1,5 +1,7 @@
 # MNISTic – Handwritten Digit Classifier
 
+![MNISTIC Demo](./client/public/demo.gif)
+
 MNISTic is a fun and educational full-stack web application that lets users draw digits (0–9) on a canvas and uses a trained machine learning model to recognize them in real-time. It’s built with **Next.js** for the frontend and **FastAPI** serving a **TensorFlow Lite** model on the backend.
 
 > ✨ Try drawing a digit on the canvas and watch the AI guess what it is!
