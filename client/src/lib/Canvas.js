@@ -1,4 +1,5 @@
 "use client";
+
 import axios from "axios";
 import { useEffect, useRef, useState } from "react";
 
@@ -9,9 +10,10 @@ const Canvas = () => {
   const [prediction, setPrediction] = useState("");
   const [confidence, setConfidence] = useState("");
   const [loading, setLoading] = useState(false);
-  const URI = process.env.NEXT_PUBLIC_API_URL;
+
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const context = canvas.getContext("2d");
     context.fillStyle = "black";
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -23,7 +25,7 @@ const Canvas = () => {
     const scaleY = canvas.height / rect.height;
 
     let clientX, clientY;
-    if (e.touches) {
+    if (e.touches && e.touches.length > 0) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
     } else {
@@ -62,7 +64,7 @@ const Canvas = () => {
     context.stroke();
   };
 
-  // Touch support
+  // Touch device accessibility layout bindings
   const handleTouchStart = (e) => {
     e.preventDefault();
     startDrawing(e);
@@ -72,7 +74,6 @@ const Canvas = () => {
     draw(e);
   };
   const handleTouchEnd = () => stopDrawing();
-
   const handleMouseMove = (e) => draw(e);
 
   const saveImage = async () => {
@@ -105,25 +106,24 @@ const Canvas = () => {
 
   useEffect(() => {
     const makePrediction = async () => {
+      if (savedImages.length === 0) return;
       setLoading(true);
       try {
-        if (savedImages.length > 0) {
-          const res = await axios.post(`${URI}/predict`, {
-            input_data: savedImages[0],
-          });
-          setPrediction(res.data.prediction);
-          setConfidence(res.data.confidence);
-        }
+        // 🚀 Changed route target point to hit your local Next.js proxy API space
+        const res = await axios.post("/api/predict", {
+          input_data: savedImages[0],
+        });
+        setPrediction(res.data.prediction);
+        setConfidence(res.data.confidence);
       } catch (error) {
-        console.error(error);
+        console.error("Axios execution error through internal gateway:", error);
+        setPrediction("Error");
       } finally {
         setLoading(false);
       }
     };
 
-    if (savedImages.length > 0) {
-      makePrediction();
-    }
+    makePrediction();
   }, [savedImages]);
 
   const predict = async () => {
@@ -170,7 +170,7 @@ const Canvas = () => {
             cursor: "crosshair",
             width: "100%",
             height: "auto",
-            touchAction: "none", // Important to disable default gestures
+            touchAction: "none",
           }}
         />
       </div>
@@ -178,22 +178,39 @@ const Canvas = () => {
       <div className="flex justify-center items-center gap-1 w-full mt-3">
         <button
           onClick={predict}
-          className="block p-[10px_20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2 w-full"
+          disabled={loading}
+          className="block p-[10px_20px] text-2xl cursor-pointer bg-accent text-accent-foreground border-2 w-full disabled:opacity-50"
         >
           {loading ? "Predicting..." : "Predict"}
         </button>
         <button
           onClick={clearCanvas}
+          disabled={loading}
           className="block p-[10px_20px] text-2xl cursor-pointer bg-red-500 text-white border-2 w-full"
         >
           Clear
         </button>
       </div>
 
-      <div style={{ marginTop: "20px", color: "white" }}>
-        <h2>Prediction: {prediction}</h2>
-        <h3>Confidence: {confidence && (confidence * 100).toFixed(2)}%</h3>
-      </div>
+      {prediction && (
+        <div
+          style={{ marginTop: "20px", color: "white" }}
+          className="text-center"
+        >
+          {prediction === "Error" ? (
+            <h2 className="text-red-500 font-semibold">
+              Prediction engine failed. Check server logs.
+            </h2>
+          ) : (
+            <>
+              <h2>Prediction: {prediction}</h2>
+              <h3>
+                Confidence: {confidence && (confidence * 100).toFixed(2)}%
+              </h3>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
